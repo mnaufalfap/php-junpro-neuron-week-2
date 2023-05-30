@@ -5,16 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\Drugs;
 use App\Http\Requests\StoreDrugsRequest;
 use App\Http\Requests\UpdateDrugsRequest;
+use Illuminate\Http\Request;
 
 class DrugsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $search = $request->query('search');
+
+        if (!empty($search)) {
+            $dataDrugs = Drugs::where('drugs.drugs_id', 'like', '%' . $search . '%')
+                ->orWhere('drugs.drugs_name', 'like', '%' . $search . '%')
+                ->paginate(10)->onEachSide(2)->fragment('drugs');
+        } else {
+            $dataDrugs = Drugs::paginate(10)->onEachSide(2)->fragment('drugs');
+        }
         return view('drugs.data')->with([
-            'drugs' => Drugs::all()
+            'drugs' => $dataDrugs,
+            'search' => $search
         ]);
     }
 
